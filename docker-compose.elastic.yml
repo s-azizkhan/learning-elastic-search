@@ -1,0 +1,42 @@
+version: '3.3'
+
+services:
+  elasticsearch:
+    image: ${ELASTICSEARCH_CONTAINER_IMAGE}
+    container_name: ${ELASTICSEARCH_CONTAINER_NAME}
+    ports:
+      - ${ELASTICSEARCH_LOCAL_PORT}:${ELASTICSEARCH_DOCKER_PORT}
+    environment:
+      - ELASTICSEARCH_USERNAME=${ELASTICSEARCH_USER}
+      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
+      - discovery.type=single-node # Runs as a single-node
+      - xpack.security.enabled=true
+      - xpack.security.authc.api_key.enabled=true
+    volumes:
+      - drf_es_data:/usr/share/elasticsearch/data
+    networks:
+      - drf-network
+
+  kibana:
+    image: ${KIBANA_CONTAINER_IMAGE}
+    container_name: ${KIBANA_CONTAINER_NAME}
+    links:
+      - elasticsearch
+    depends_on:
+      - elasticsearch
+    ports:
+      - ${KIBANA_LOCAL_PORT}:${KIBANA_DOCKER_PORT}
+    environment:
+      - ELASTICSEARCH_USERNAME=${ELASTICSEARCH_USER}
+      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - drf-network
+
+networks:
+  drf-network:
+    external: true
+
+volumes:
+  drf_es_data:
+    external: true

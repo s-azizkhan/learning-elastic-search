@@ -1,0 +1,288 @@
+GET /my_index/_search
+{
+  "sort": [
+    {
+      "created_at": {
+        "order": "desc"
+      }
+    },
+    "_score"
+  ],
+  "query": {
+    "nested": {
+      "path": "obj",
+      "query": {
+        "match": {
+          "obj.address.zip": "147"
+        }
+      }
+    }
+  }
+}
+
+
+
+PUT /my_index/_mapping
+{
+  "properties": {
+    "email": {
+      "type": "keyword"
+    },
+    "obj": {
+      "type": "nested"
+    }
+  }
+}
+
+POST /my_index/_doc
+{
+  "title": "Good ++ or ++ baad",
+  "description": "super ++ ok",
+  "price": 78,
+  "email": "aziz+7@logic.com",
+  "obj": {
+    "name": "aziz",
+    "org": "LW",
+    "address": {
+      "zip": 333,
+      "country": "IN"
+    },
+    "order": {
+      "total": 900,
+      "items": [
+        {
+          "name": "Sony",
+          "price": 600
+        },
+        {
+          "name": "iPhone",
+          "price": 300
+        }
+      ]
+    }
+  }
+}
+
+POST /_sql?format=txt
+{
+  "query": """
+  SELECT * FROM "my_index" WHERE MATCH(title, 'Good') AND MATCH(description, 'super')
+  """
+}
+
+
+GET /my_index/_search?pretty=true&scroll=10m&size=50
+{
+  "sort": [
+    {
+      "created_at": {
+        "order": "desc"
+      }
+    },
+    "_score"
+  ],
+    "query" : {
+        "match_all" : {}
+    }
+}
+
+GET /my_index/_doc/0UCHbYkBe72zwFEN1L_t
+
+PUT /my_index/_doc/0UCHbYkBe72zwFEN1L_t
+{
+  "title": "Good ++ or ++ baad",
+  "description": "super ++ ok",
+  "price": 99,
+  "email": "aziz+1@logic.com",
+  "obj": {
+    "name": "aziz",
+    "org": "LW",
+    "address": {
+      "zip": 148,
+      "country": "IN"
+    },
+    "order": {
+      "total": 500,
+      "items": [
+        {
+          "name": "Mac",
+          "price": 200
+        },
+        {
+          "name": "iPhone",
+          "price": 300
+        }
+      ]
+    }
+  }
+}
+
+POST /my_index/_update/0UCHbYkBe72zwFEN1L_t
+{
+  "doc" : {
+    "title": "all good",
+    "obj" : {
+      "address" : {
+        "zip": 457
+      }
+    }
+  }
+}
+
+POST my_index/_update_by_query
+{
+  "script": {
+    "lang": "painless",
+    "source": "if (ctx._source.email == 'aziz+1@logic.com') { ctx._source.price = 12.99; ctx._source.description = 'All okay here'; ctx._source.obj.org = 'LW' }"
+  },
+  "query": {
+    "term": {
+      "email": "aziz+1@logic.com"
+    }
+  }
+}
+
+POST my_index/_update_by_query
+{
+  "script": {
+    "lang": "painless",
+   "source": " ctx._source.obj.org = params.org;",
+   "params": {
+     "org": "CP"
+   }
+  },
+  "query": {
+    "nested": {
+      "path": "obj",
+      "query": {
+        "term": {
+          "obj.org.keyword": "CP"
+        }
+      }
+    }
+  }
+}
+
+POST my_index/_update_by_query
+{
+  "script": {
+    "lang": "painless",
+   "source": " ctx._source.obj.org = params.org;",
+   "params": {
+     "org": "LW"
+   }
+  },
+  "query": {
+    "nested": {
+      "path": "obj",
+      "query": {
+        "term": {
+          "obj.org.keyword": "CP"
+        }
+      }
+    }
+  }
+}
+
+POST my_index/_search
+{
+   "sort": [
+    {
+      "created_at": {
+        "order": "desc"
+      }
+    },
+    "_score"
+  ],
+  "query": {
+    "nested": {
+      "path": "obj",
+      "query": {
+        "wildcard": {
+          "obj.order.items.name": "ip*"
+        }
+      }
+    }
+  }
+}
+
+POST my_index/_search
+{
+  "query": {
+    "match_all": {}
+  },
+  "sort": [
+    {
+      "obj.name.keyword": {
+        "order": "desc",
+        "nested": {
+          "path": "obj"
+        },
+        "mode": "min"
+      }
+    }
+  ]
+}
+
+POST my_index/_search
+{
+  "query": {
+    "match_all": {}
+  },
+  "sort": [
+    {
+      "obj.address.country": {
+        "order": "asc",
+        "nested": {
+          "path": "obj"
+        },
+        "mode": "min"
+      }
+    }
+  ]
+}
+
+POST /my_index/_delete_by_query
+{
+  "query": {
+    "match": {
+      "obj.name": "aziz"
+    }
+  }
+}
+
+POST my_index/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "a",
+       "type": "phrase",
+      "fields": [
+        "email",
+        "product"
+      ]
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
